@@ -48,20 +48,20 @@ let config = {
   SIM_RESOLUTION: 128,
   DYE_RESOLUTION: 1024,
   CAPTURE_RESOLUTION: 512,
-  DENSITY_DISSIPATION: 1,
+  DENSITY_DISSIPATION: 0.3,
   VELOCITY_DISSIPATION: 0.2,
-  PRESSURE: 0.8,
+  PRESSURE: 0.5,
   PRESSURE_ITERATIONS: 20,
   CURL: 30,
-  SPLAT_RADIUS: 0.25,
-  SPLAT_FORCE: 6000,
-  SHADING: true,
-  COLORFUL: true,
+  SPLAT_RADIUS: 0.2,
+  SPLAT_FORCE: 5000,
+  SHADING: false,
+  COLORFUL: false,
   COLOR_UPDATE_SPEED: 10,
   PAUSED: false,
   BACK_COLOR: { r: 0, g: 0, b: 0 },
   TRANSPARENT: false,
-  BLOOM: true,
+  BLOOM: false,
   BLOOM_ITERATIONS: 8,
   BLOOM_RESOLUTION: 256,
   BLOOM_INTENSITY: 0.8,
@@ -87,6 +87,9 @@ function pointerPrototype() {
 
 let pointers = [];
 let splatStack = [];
+let colorcode = 0.7;
+let multiplier = 6;
+
 pointers.push(new pointerPrototype());
 
 const { gl, ext } = getWebGLContext(canvas);
@@ -1737,9 +1740,18 @@ window.addEventListener("touchend", (e) => {
   }
 });
 
+// keylisteners
 window.addEventListener("keydown", (e) => {
   if (e.code === "KeyP") config.PAUSED = !config.PAUSED;
   if (e.key === " ") splatStack.push(parseInt(Math.random() * 20) + 5);
+  if (e.code === "KeyZ") config.CURL = 0;
+  if (e.code === "KeyX") config.CURL = 50;
+  if (e.code === "KeyD") (colorcode = 0.08), (config.CURL = 0);
+  if (e.code === "KeyF") (colorcode = 0.33), (config.CURL = 0);
+  if (e.code === "KeyJ") (colorcode = 0.66), (config.CURL = 50);
+  if (e.code === "KeyK") (colorcode = 0.8), (config.CURL = 50);
+
+  console.log(colorcode);
 });
 
 function updatePointerDownData(pointer, id, posX, posY) {
@@ -1782,7 +1794,7 @@ function correctDeltaY(delta) {
 }
 
 function generateColor() {
-  let c = HSVtoRGB(Math.random(), 1.0, 1.0);
+  let c = HSVtoRGB(colorcode, 1.0, 1.0);
   c.r *= 0.15;
   c.g *= 0.15;
   c.b *= 0.15;
@@ -1791,6 +1803,7 @@ function generateColor() {
 
 function HSVtoRGB(h, s, v) {
   let r, g, b, i, f, p, q, t;
+
   i = Math.floor(h * 6);
   f = h * 6 - i;
   p = v * (1 - s);
@@ -1825,6 +1838,7 @@ function HSVtoRGB(h, s, v) {
   };
 }
 
+//background color change
 function normalizeColor(input) {
   let output = {
     r: input.r / 255,
